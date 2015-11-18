@@ -1,0 +1,16 @@
+To compile this project, the Eigen has to be put at the root directory.
+The input data format are:
+mygraph.edges
+mygraph.nodefeat
+
+In each file, we have rows of data. 
+E.g., in mygraph.edges 1 2 would mean there is an edge from 1 to 2. in mygraph.nodefeat, 1 2 would mean node 1 has attribute 2.
+
+In case that there is some isolated node, whose information is not appearing in the .edge file. One has to list all the nodes by indicating there is a link to the node itself. 
+E.g. For the following graph, 1 is only connected to 2. And 3,4 are two isolated graph. Then in the .edge file, one should see
+1 2
+2 1
+3 3
+4 4
+
+The same rule applies to .nodefeat file, if some attributes is not used by any node (which is highly impossible)

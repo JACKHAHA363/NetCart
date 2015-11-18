@@ -1,0 +1,8 @@
+*.edges
+*.nodefeat
+*.txt
+*.o
+netcart
+*.out
+*.png
+*.py
