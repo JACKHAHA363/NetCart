@@ -106,7 +106,6 @@ void Netcart::initialization()
 	}
 	X.setRandom();
 	X = X + Eigen::MatrixXd::Ones(X.rows(),X.cols());//non-negative constraint
-	x_sum_vector = X.rowwise().sum();
 	W.setRandom();
 	Constant.setRandom();
 }
@@ -121,7 +120,7 @@ double Netcart::LogLikelihoodGraph()
 	double result = 0;
 	for (int u = 0; u < G.rows(); ++u)
 	{
-		if(!digraph)
+		if(digraph)
 		{
 			for (int v = 0; v < G.cols(); ++v)
 			{
@@ -153,6 +152,7 @@ double Netcart::LogLikelihoodGraph()
 			}
 		}	
 	}
+//	cout << "edge: " << result << endl;
 	return result;
 }
 
@@ -178,6 +178,7 @@ double Netcart::LogLikelihoodAttri()
 			}
 		}
 	}
+	//cout << "attribute: " << result;
 	return result;
 }
 
@@ -248,6 +249,10 @@ void Netcart::Optimize(int max_iterate_x, int max_iterate_r, int max_iterate_w)
 	for (int i = 0; i < MAX_ITERATE; ++i)
 	{
 		OptimizeR(max_iterate_r);
+		if (!digraph)
+		{
+			R = R + R.transpose()/2;
+		}
 		OptimizeX(max_iterate_x);
 		OptimizeW(max_iterate_w);
 		double CostOld = CostCurrent;
@@ -258,7 +263,76 @@ void Netcart::Optimize(int max_iterate_x, int max_iterate_r, int max_iterate_w)
 	}
 	cout << "saving results..." << endl;
 	SaveXRW();
-	return 0;
+}
+
+void Netcart::OptimizeR(int max_iterate_r)
+{
+	x_sum_vector = X.rowwise().sum();
+	double CostCurrent = CostFunction();
+	for (int i = 0; i < max_iterate_r; ++i)
+	{
+		Eigen::MatrixXd Rgrad = Eigen::MatrixXd::Zero(R.rows(), R.cols());
+		double CostOld = CostCurrent;
+		RGradient(Rgrad);
+		R += beta_r * Rgrad;
+		Bounding(R);
+		CostCurrent = CostFunction();
+		if (Converge(CostOld, CostCurrent))
+			break;	
+	}
+}
+
+void Netcart::OptimizeX(int max_iterate_x)
+{
+	double CostCurrent = CostFunction();	
+	for (int i = 0; i < max_iterate_x; ++i)
+	{
+		double CostCurrent_v = CostCurrent;
+		for (int v = 0; v < G.cols(); ++v)
+		{
+			Eigen::MatrixXd X_vgrad = Eigen::MatrixXd::Zero(X.rows(), 1);
+			Eigen::MatrixXd X_v = X.col(v);
+			double CostOld_v = CostCurrent_v;
+			x_sum_vector = X.rowwise().sum();
+			X_vGradient(X_vgrad, v);
+			X_v += beta_x * X_vgrad;
+			Bounding(X_v);
+			X.col(v) = X_v;
+			CostCurrent_v = CostFunction();
+			if (Converge(CostOld_v, CostCurrent_v))
+				break;
+		}
+		double CostOld = CostCurrent;
+		CostCurrent = CostFunction();
+		if (Converge(CostOld, CostCurrent))
+			break;
+	}
+}
+
+void Netcart::OptimizeW(int max_iterate_w)
+{
+	double CostCurrent = CostFunction();
+	x_sum_vector = X.rowwise().sum();	
+	for (int i = 0; i < max_iterate_w; ++i)
+	{
+		double CostCurrent_b = CostCurrent;
+		for (int b = 0; b < W.cols(); ++b)
+		{
+			Eigen::MatrixXd W_bgrad = Eigen::MatrixXd::Zero(W.rows(), 1);
+			Eigen::MatrixXd Const_bgrad = Eigen::MatrixXd::Zero(Constant.rows(), 1);
+			double CostOld_b = CostCurrent_b;
+			W_bGradient(W_bgrad, Const_bgrad, b);
+			W.col(b) += beta_w * W_bgrad;
+			Constant.col(b) += beta_w * Const_bgrad;
+			CostCurrent_b = CostFunction();
+			if (Converge(CostOld_b, CostCurrent_b))
+				break;
+		}
+		double CostOld = CostCurrent;
+		CostCurrent = CostFunction();
+		if (Converge(CostOld, CostCurrent))
+			break;
+	}
 }
 
 // REQUIRE: R/X/Wgrad has to be zero matrix
@@ -298,7 +372,7 @@ void Netcart::RGradient(Eigen::MatrixXd& Rgrad)
 }
 
 
-void Netcart::X_vGradient(Eigen::MatrixXd& Xgrad, int v)
+void Netcart::X_vGradient(Eigen::MatrixXd& X_vgrad, int v)
 {
 	Eigen::MatrixXd Xvgrad_edge	= Eigen::MatrixXd::Zero(X.rows(),1);
 	if (digraph)
@@ -332,7 +406,6 @@ void Netcart::X_vGradient(Eigen::MatrixXd& Xgrad, int v)
 			if (G(u,v) == 1)
 			{
 				double temp = predictEdge(u,v);
-				cout << u << ": " << temp << endl;
 				if (temp == 0)
 				{
 					temp = SMALLEST_NUM;
@@ -372,21 +445,17 @@ void Netcart::X_vGradient(Eigen::MatrixXd& Xgrad, int v)
 	}
 	//add regularization of Xgrad
 	Eigen::MatrixXd X_v = X.col(v);
-	Eigen::MatrixXd Xvgrad = (1 - alpha) * Xvgrad_edge + alpha * Xvgrad_attri - alpha_x * Sign(X_v);
-	normalization(Xvgrad);
-	Xgrad.col(v) = Xvgrad;
+	X_vgrad = (1 - alpha) * Xvgrad_edge + alpha * Xvgrad_attri - alpha_x * Sign(X_v);
+	normalization(X_vgrad);
 }
 
-void Netcart::W_bGradient(Eigen::MatrixXd& Wgrad, Eigen::MatrixXd &Constgrad, int b)
+void Netcart::W_bGradient(Eigen::MatrixXd& W_bgrad, Eigen::MatrixXd &Const_bgrad, int b)
 {
 	Eigen::MatrixXd W_b = W.col(b);
 	Eigen::MatrixXd Const_b = Constant.col(b);
-	Eigen::MatrixXd Wbgrad = Eigen::MatrixXd::Zero(Wgrad.rows(), 1);
-	Eigen::MatrixXd Constbgrad = Eigen::MatrixXd::Zero(1, 1);
 	// just a work around for the "+=" overload of Eigen::Dense.
 	// Eigen is terrible for developer
 	Eigen::MatrixXd one = Eigen::MatrixXd::Ones(1, 1);
-	Eigen::MatrixXd attrib_term = Eigen::MatrixXd::Zero(Wgrad.rows(), 1);
 	for (int v = 0; v < A.rows(); ++v)
 	{
 		double temp = predictAttri(v,b); 
@@ -400,27 +469,24 @@ void Netcart::W_bGradient(Eigen::MatrixXd& Wgrad, Eigen::MatrixXd &Constgrad, in
 		}
 		if (A(v,b) == 1)
 		{
-			attrib_term += ( 1 - temp ) * X.col(v);
-			Wbgrad += (1 - temp) * X.col(v);
-			Constbgrad += (1 - temp) * one;
+			W_bgrad += (1 - temp) * X.col(v);
+			Const_bgrad += (1 - temp) * one;
 		}
 		else
 		{
-			Wbgrad -= temp * X.col(v);
-			Constbgrad -= temp * one;
+			W_bgrad -= temp * X.col(v);
+			Const_bgrad -= temp * one;
 		}
 	}
-	Wbgrad *= alpha;
-	Constbgrad *= alpha;
+	W_bgrad *= alpha;
+	Const_bgrad *= alpha;
 	// regularization
-	Wbgrad -= alpha_w * Sign(W_b);
-	Constbgrad -= alpha_w * Sign(Const_b);
+	W_bgrad -= alpha_w * Sign(W_b);
+	Const_bgrad -= alpha_w * Sign(Const_b);
 	if (alpha != 0)
 	{
-		normalization(Wbgrad);
+		normalization(W_bgrad);
 	}
-	Wgrad.col(b) = Wbgrad;
-	Constgrad.col(b) = Constbgrad;
 }
 
 bool Netcart::Converge(double CostOld, double CostCurrent)
