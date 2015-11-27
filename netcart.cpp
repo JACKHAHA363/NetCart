@@ -284,7 +284,7 @@ void Netcart::OptimizeX(int max_iterate_x)
 	double CostCurrent = CostFunction();
 	for (int v = 0; v < G.cols(); ++v)
 	{
-		for (i = 0; i < max_iterate_x; ++i)
+		for (int i = 0; i < max_iterate_x; ++i)
 		{
 			x_sum_vector = X.rowwise().sum();	
 			Eigen::MatrixXd X_vgrad = Eigen::MatrixXd::Zero(X.rows(), 1);
@@ -304,26 +304,24 @@ void Netcart::OptimizeX(int max_iterate_x)
 void Netcart::OptimizeW(int max_iterate_w)
 {
 	double CostCurrent = CostFunction();
-	x_sum_vector = X.rowwise().sum();	
-	for (int i = 0; i < max_iterate_w; ++i)
+	for (int b = 0; b < W.cols(); ++b)
 	{
-		double CostCurrent_b = CostCurrent;
-		for (int b = 0; b < W.cols(); ++b)
+		for (int i = 0; i < max_iterate_w; i++)
 		{
+			Eigen::MatrixXd W_b = W.col(b);
+			Eigen::MatrixXd Const_b = Constant.col(b);
 			Eigen::MatrixXd W_bgrad = Eigen::MatrixXd::Zero(W.rows(), 1);
 			Eigen::MatrixXd Const_bgrad = Eigen::MatrixXd::Zero(Constant.rows(), 1);
-			double CostOld_b = CostCurrent_b;
+			double CostOld = CostCurrent;
 			W_bGradient(W_bgrad, Const_bgrad, b);
-			W.col(b) += beta_w * W_bgrad;
-			Constant.col(b) += beta_w * Const_bgrad;
-			CostCurrent_b = CostFunction();
-			if (Converge(CostOld_b, CostCurrent_b))
+			W_b += beta_w * W_bgrad;
+			W.col(b) = W_b;
+			Const_b	+= beta_w * Const_bgrad;
+			Constant.col(b) = Const_b;
+			CostCurrent = CostFunction();
+			if (Converge(CostOld, CostCurrent))
 				break;
 		}
-		double CostOld = CostCurrent;
-		CostCurrent = CostFunction();
-		if (Converge(CostOld, CostCurrent))
-			break;
 	}
 }
 
