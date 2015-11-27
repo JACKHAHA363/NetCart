@@ -1,6 +1,7 @@
 #include "netcart.h"
 #include "util.h"
 
+// TODO: the converging speed is not good.
 
 Netcart::Netcart()
 {
@@ -236,7 +237,7 @@ double Netcart::CostFunction()
 			alpha_w*L1Norm(W) - alpha_w*L1Norm(Constant);
 }
 
-void Netcart::Optimize(int max_iterate_x, int max_iterate_r, int max_iterate_w)
+void Netcart::Optimize(int max_iterate_x, int max_iterate_r, int max_iterate_w, string path)
 {
 	double CostCurrent = CostFunction();
 	cout << "starting at: " << CostCurrent << endl;
@@ -257,7 +258,7 @@ void Netcart::Optimize(int max_iterate_x, int max_iterate_r, int max_iterate_w)
 			break;
 	}
 	cout << "saving results..." << endl;
-	SaveXRW();
+	SaveXRW(path);
 }
 
 void Netcart::OptimizeR(int max_iterate_r)
@@ -283,7 +284,6 @@ void Netcart::OptimizeX(int max_iterate_x)
 	double CostCurrent = CostFunction();
 	for (int v = 0; v < G.cols(); ++v)
 	{
-		int i = 0;
 		for (i = 0; i < max_iterate_x; ++i)
 		{
 			x_sum_vector = X.rowwise().sum();	
