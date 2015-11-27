@@ -8,11 +8,12 @@ int main()
 	Eigen::MatrixXd m;
 	Netcart mynetcart("data/hospital.edges","data/hospital.nodefeat");
 	mynetcart.initialization();
+	mynetcart.SetRegularization();
 // give data to Rodan.py just for debug
-	WriteMat(mynetcart.X, "/home/jackhaha363/netcart/netcartPython/X.txt");
-	WriteMat(mynetcart.R, "/home/jackhaha363/netcart/netcartPython/R.txt");
-	WriteMat(mynetcart.W, "/home/jackhaha363/netcart/netcartPython/W.txt");
-	WriteMat(mynetcart.Constant, "/home/jackhaha363/netcart/netcartPython/Const.txt");	
+//	WriteMat(mynetcart.X, "/home/jackhaha363/netcart/netcartPython/X.txt");
+//	WriteMat(mynetcart.R, "/home/jackhaha363/netcart/netcartPython/R.txt");
+//	WriteMat(mynetcart.W, "/home/jackhaha363/netcart/netcartPython/W.txt");
+//	WriteMat(mynetcart.Constant, "/home/jackhaha363/netcart/netcartPython/Const.txt");	
 //	cout << mynetcart.LogLikelihoodGraph() << endl;
 
 	// test XGradient
@@ -24,7 +25,13 @@ int main()
 //	Eigen::MatrixXd Constgrad = Eigen::MatrixXd::Zero(mynetcart.Constant.rows(), 1);
 //	mynetcart.W_bGradient(Wgrad, Constgrad, 0);
 
-	mynetcart.SetLearningRate(0.1,0.1,0.1);
-	mynetcart.Optimize(10,50,50);
+	// test likelihood
+//	mynetcart.LogLikelihood();
+
+	// test costfunction
+//	cout << mynetcart.CostFunction() << endl;
+
+	mynetcart.SetLearningRate(0.01,0.01,0.1);
+	mynetcart.Optimize(200,200,200);
 	return 0;	
 }

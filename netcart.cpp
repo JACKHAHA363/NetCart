@@ -97,6 +97,7 @@ void Netcart::SetDigraph(bool _digraph){digraph = _digraph;}
 void Netcart::initialization()
 {
 	srand(13);
+//	srand(time(NULL));
 	R.setRandom();
 	R = R + Eigen::MatrixXd::Ones(R.rows(),R.cols());//non-negative constraint
 	if(!digraph)
@@ -117,43 +118,36 @@ double Netcart::LogLikelihood()
 
 double Netcart::LogLikelihoodGraph()
 {
-	double result = 0;
+	double resedge = 0;
+	x_sum_vector = X.rowwise().sum();
+	double nonresedge = (x_sum_vector.transpose() * R * x_sum_vector)(0);
 	for (int u = 0; u < G.rows(); ++u)
 	{
-		if(digraph)
+		nonresedge -= X.col(u).transpose() * R * X.col(u);
+	}
+	if(!digraph)
+	{
+		nonresedge /= 2;
+	}
+	for (int v = 0; v < G.cols(); ++v)
+	{
+		for (int u = 0; u < G.cols(); ++u)
 		{
-			for (int v = 0; v < G.cols(); ++v)
+			if(u == v) continue;
+			if (G(u,v) == 1)
 			{
-				if(u == v) continue;
-				double predict = predictEdge(u,v);
-				if (G(u,v) == 0)
-				{
-					if(predict == 1)
-						predict = 1 - SMALLEST_NUM;
-					result += log(1-predict);
-				}
-				else
-				{
-					if(predict == 0)
-						predict = SMALLEST_NUM;
-					result += log(predict);
-				}
+				double predict = X.col(u).transpose() * R * X.col(v);
+				if(predict == 0)
+					predict = ZERO;
+				nonresedge -= predict;
+				resedge += log(1 - exp(-predict));
 			}
 		}
-		else
-		{
-			for (int v = u+1; v < G.cols(); ++v)
-			{
-				double predict = predictEdge(u,v);
-				if (G(u,v)==0)
-					result += log(1-predict);
-				else
-					result += log(predict);
-			}
-		}	
 	}
-//	cout << "edge: " << result << endl;
-	return result;
+	nonresedge *= -1;
+//	cout << "resedge: " << resedge << " nonresedge: " << nonresedge << endl;
+//	cout << "edge: " << resedge + nonresedge << endl;
+	return resedge + nonresedge;
 }
 
 double Netcart::LogLikelihoodAttri()
@@ -167,18 +161,18 @@ double Netcart::LogLikelihoodAttri()
 			if (A(v,i)==0)
 			{
 				if (predict == 1)
-					predict = 1 - SMALLEST_NUM;
+					predict = 1 - ZERO;
 				result += log(1-predict);
 			}
 			else
 			{
 				if (predict == 0)
-					predict = SMALLEST_NUM;
+					predict = ZERO;
 				result += log(predict);
 			}
 		}
 	}
-	//cout << "attribute: " << result;
+//	cout << "attribute: " << result << endl;
 	return result;
 }
 
@@ -248,13 +242,14 @@ void Netcart::Optimize(int max_iterate_x, int max_iterate_r, int max_iterate_w)
 	cout << "starting at: " << CostCurrent << endl;
 	for (int i = 0; i < MAX_ITERATE; ++i)
 	{
+		OptimizeW(max_iterate_w);
 		OptimizeR(max_iterate_r);
 		if (!digraph)
 		{
 			R = R + R.transpose()/2;
 		}
 		OptimizeX(max_iterate_x);
-		OptimizeW(max_iterate_w);
+
 		double CostOld = CostCurrent;
 		CostCurrent = CostFunction();
 		cout << "at " << i+1 << "th iteration: " << CostCurrent << endl;
@@ -284,28 +279,25 @@ void Netcart::OptimizeR(int max_iterate_r)
 
 void Netcart::OptimizeX(int max_iterate_x)
 {
-	double CostCurrent = CostFunction();	
-	for (int i = 0; i < max_iterate_x; ++i)
+	x_sum_vector = X.rowwise().sum();	
+	double CostCurrent = CostFunction();
+	for (int v = 0; v < G.cols(); ++v)
 	{
-		double CostCurrent_v = CostCurrent;
-		for (int v = 0; v < G.cols(); ++v)
+		int i = 0;
+		for (i = 0; i < max_iterate_x; ++i)
 		{
+			x_sum_vector = X.rowwise().sum();	
 			Eigen::MatrixXd X_vgrad = Eigen::MatrixXd::Zero(X.rows(), 1);
 			Eigen::MatrixXd X_v = X.col(v);
-			double CostOld_v = CostCurrent_v;
-			x_sum_vector = X.rowwise().sum();
+			double CostOld = CostCurrent;
 			X_vGradient(X_vgrad, v);
 			X_v += beta_x * X_vgrad;
 			Bounding(X_v);
 			X.col(v) = X_v;
-			CostCurrent_v = CostFunction();
-			if (Converge(CostOld_v, CostCurrent_v))
+			CostCurrent = CostFunction();
+			if (Converge(CostOld, CostCurrent))
 				break;
 		}
-		double CostOld = CostCurrent;
-		CostCurrent = CostFunction();
-		if (Converge(CostOld, CostCurrent))
-			break;
 	}
 }
 
@@ -354,11 +346,11 @@ void Netcart::RGradient(Eigen::MatrixXd& Rgrad)
 				double temp = predictEdge(v,u);
 				if (temp == 0)
 				{
-					temp = SMALLEST_NUM;
+					temp = ZERO;
 				}
 				if (temp == 1)
 				{
-					temp = 1 - SMALLEST_NUM;
+					temp = 1 - ZERO;
 				}
 				Eigen::MatrixXd tmp = X.col(v)*X.col(u).transpose();
 				res_edge += tmp*(1-temp)/temp;
@@ -393,11 +385,11 @@ void Netcart::X_vGradient(Eigen::MatrixXd& X_vgrad, int v)
 				double temp = predictEdge(v,u);
 				if (temp == 0)
 				{
-					temp = SMALLEST_NUM;
+					temp = ZERO;
 				}
 				if (temp == 1)
 				{
-					temp = 1 - SMALLEST_NUM;
+					temp = 1 - ZERO;
 				}
 				out_nbr_v +=  (1 - temp) * X.col(u)/temp;
 				out_Xsum_v += X.col(u);
@@ -408,11 +400,11 @@ void Netcart::X_vGradient(Eigen::MatrixXd& X_vgrad, int v)
 				double temp = predictEdge(u,v);
 				if (temp == 0)
 				{
-					temp = SMALLEST_NUM;
+					temp = ZERO;
 				}
 				if (temp == 1)
 				{
-					temp = 1 - SMALLEST_NUM;
+					temp = 1 - ZERO;
 				}
 				in_nbr_v +=  (1 - temp) * X.col(u)/temp;
 				in_Xsum_v += X.col(u);
@@ -430,7 +422,7 @@ void Netcart::X_vGradient(Eigen::MatrixXd& X_vgrad, int v)
 		{
 			if (temp == 1)
 			{
-				temp = 1 - SMALLEST_NUM;
+				temp = 1 - ZERO;
 			}
 			Xvgrad_attri += (1 - temp) * W.col(i);
 		}
@@ -438,7 +430,7 @@ void Netcart::X_vGradient(Eigen::MatrixXd& X_vgrad, int v)
 		{
 			if (temp == 0)
 			{
-				temp = SMALLEST_NUM;
+				temp = ZERO;
 			}
 			Xvgrad_attri -= temp * W.col(i);
 		}
@@ -461,11 +453,11 @@ void Netcart::W_bGradient(Eigen::MatrixXd& W_bgrad, Eigen::MatrixXd &Const_bgrad
 		double temp = predictAttri(v,b); 
 		if (temp == 0)
 		{
-			temp = SMALLEST_NUM;
+			temp = ZERO;
 		}
 		if (temp == 1)
 		{
-			temp = 1 - SMALLEST_NUM;
+			temp = 1 - ZERO;
 		}
 		if (A(v,b) == 1)
 		{
@@ -481,8 +473,8 @@ void Netcart::W_bGradient(Eigen::MatrixXd& W_bgrad, Eigen::MatrixXd &Const_bgrad
 	W_bgrad *= alpha;
 	Const_bgrad *= alpha;
 	// regularization
-	W_bgrad -= alpha_w * Sign(W_b);
-	Const_bgrad -= alpha_w * Sign(Const_b);
+	W_bgrad -= 2 * alpha_w * W_b;
+	Const_bgrad -= 2 * alpha_w * Const_b;
 	if (alpha != 0)
 	{
 		normalization(W_bgrad);
@@ -491,7 +483,7 @@ void Netcart::W_bGradient(Eigen::MatrixXd& W_bgrad, Eigen::MatrixXd &Const_bgrad
 
 bool Netcart::Converge(double CostOld, double CostCurrent)
 {
-	return abs((CostOld - CostCurrent)/CostOld) <= 1e-5;
+	return (CostCurrent - CostOld)/abs(CostOld) <= 1e-5;
 }
 
 
@@ -504,11 +496,11 @@ Netcart::Bounding(Eigen::MatrixXd &input)
 		{
 			if (input(i,j) < 0)
 			{
-				input(i,j) = SMALLEST_NUM;
+				input(i,j) = ZERO;
 			}
 			if (input(i,j) > 7)
 			{
-				input(i,j) = 7 - SMALLEST_NUM;
+				input(i,j) = 7 - ZERO;
 			}
 		}
 	}

@@ -6,3 +6,4 @@ netcart
 *.out
 *.png
 *.py
+*.pyc

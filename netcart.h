@@ -1,6 +1,8 @@
 #ifndef NETCART_H
 #define NETCART_H
 
+// TODO: Problem is in optimizing X
+
 #include <iostream>
 #include "Eigen/Dense"
 #include <cmath>
@@ -14,7 +16,7 @@
 
 
 const int MAX_ITERATE = 100;
-const double SMALLEST_NUM = 1e-14;
+const double ZERO = 1e-14;
 
 using namespace std;
 class Netcart
@@ -26,7 +28,7 @@ public:
 			double _alpha = 0.5, bool _digraph = true);
 
 	//set parameters
-	void SetRegularization(double alpha_x = 0, double alpha_r = 0,	double alpha_w = 0);
+	void SetRegularization(double alpha_x = 0, double alpha_r = 0.9375, double alpha_w = 0);
 	void SetAttributedGraph(string graph_file, string attri_file);
 	void SetNumRole(int _k_target);
 	void SetAttriWeight(double _alpha);
