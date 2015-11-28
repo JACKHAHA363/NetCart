@@ -1,12 +1,13 @@
-To compile this project, the Eigen has to be put at the root directory.
-The input data format are:
+This software is a c++ implementation of the algorithm RoDan proposed by Jia Wang. To compile this project, the Eigen has to be put at the root directory, or you can create a link flag during the compilation. The software has been developed and tested in the following platform: Ubuntu 14.04, clang 3.7. If you are using gcc, just modify the make file.
+
+The input files are:
 mygraph.edges
 mygraph.nodefeat
 
-In each file, we have rows of data. 
-E.g., in mygraph.edges 1 2 would mean there is an edge from 1 to 2. in mygraph.nodefeat, 1 2 would mean node 1 has attribute 2.
+In each file, we have rows of data. E.g., in mygraph.edges 1 2 would mean there is an edge from 1 to 2. in mygraph.nodefeat, 1 2 would mean node 1 has attribute 2.
 
-In case that there is some isolated node, whose information is not appearing in the .edge file. One has to list all the nodes by indicating there is a link to the node itself. 
+In case that there is some isolated node, whose information is not appearing in the .edge file. One has to list all the nodes by indicating there is a link to the node itself. This is just for the sake of IO. The self referential edges would not be considered in the actual algorithm.
+
 E.g. For the following graph, 1 is only connected to 2. And 3,4 are two isolated graph. Then in the .edge file, one should see
 1 2
 2 1
@@ -14,3 +15,5 @@ E.g. For the following graph, 1 is only connected to 2. And 3,4 are two isolated
 4 4
 
 The same rule applies to .nodefeat file, if some attributes is not used by any node (which is highly impossible)
+
+The outputs are saved by default to the current folder, and further visualization could be realized.
