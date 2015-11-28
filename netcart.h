@@ -1,7 +1,7 @@
 /*-------------------------------------------------------------
  * Author: Yuchen Lu
  * Compilation: make
- * Execution: ./netcart
+ * Execution: ./bin/netcart
  * 
  * Perform a RoDan algorithm on hospital data set with k equals 
  * to 4, and save the result to current directory.
@@ -57,7 +57,7 @@ public:
     void SetNumRole(int _k_target);
     void SetAttriWeight(double _alpha);
 	void SetDigraph(bool _digraph);
-	void SetLearningRate(double beta_x, double beta_r, double beta_w);
+	void SetLearningRate(double _beta_x, double _beta_r, double _beta_w);
 	void SetX(Eigen::MatrixXd _X){X = _X;}
 	void SetR(Eigen::MatrixXd _R){R = _R;}
 	void SetW(Eigen::MatrixXd _W){W = _W;}
@@ -132,6 +132,7 @@ private:
      * Returns the gradient for X.col(v). 
      * Notice: Xgrad still has the same size of X, but
      * only column v is changed.
+     */
     void X_vGradient(Eigen::MatrixXd& Xgrad, int v);
 
     /**
@@ -179,6 +180,11 @@ private:
      * Regularization coefficients.
      */
 	double alpha_r, alpha_x, alpha_w; 
+
+    /**
+     * Learning rate
+     */
+    double beta_x, beta_r, beta_w;
 
     /**
      * Weight attribute.

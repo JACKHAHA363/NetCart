@@ -2,6 +2,7 @@
 #include "util.h"
 
 // TODO: the converging speed is not good.
+// TODO: add zoom
 
 Netcart::Netcart()
 {
