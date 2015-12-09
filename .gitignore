@@ -1,5 +1,3 @@
-*.edges
-*.nodefeat
 *.txt
 *.o
 netcart
@@ -7,3 +5,5 @@ netcart
 *.png
 *.py
 *.pyc
+*.dat
+*.swp
