@@ -1,7 +1,8 @@
 #include "netcart.h"
 #include "util.h"
 
-// TODO: the converging speed is not good.
+// TODO: the converging speed is not good. 
+// TODO: add multi-threading or exploiting Eigen.
 // TODO: add zoom
 
 Netcart::Netcart()
@@ -392,22 +393,25 @@ void Netcart::X_vGradient(Eigen::MatrixXd& X_vgrad, int v)
 				}
 				out_nbr_v +=  (1 - temp) * X.col(u)/temp;
 				out_Xsum_v += X.col(u);
+                    
+                //in_nbr_v += (1 - temp) * X.col(v)/temp;
+                //in_Xsum_v += X.col(v);
 			}
 			// in-neighbour of v
-			if (G(u,v) == 1)
-			{
-				double temp = predictEdge(u,v);
-				if (temp == 0)
-				{
-					temp = ZERO;
-				}
-				if (temp == 1)
-				{
-					temp = 1 - ZERO;
-				}
-				in_nbr_v +=  (1 - temp) * X.col(u)/temp;
-				in_Xsum_v += X.col(u);
-			}
+	    	if (G(u,v) == 1)
+	    	{
+	    		double temp = predictEdge(u,v);
+	    		if (temp == 0)
+	    		{
+	    			temp = ZERO;
+	    		}
+	    		if (temp == 1)
+	    		{
+	    			temp = 1 - ZERO;
+	    		}
+	    		in_nbr_v +=  (1 - temp) * X.col(u)/temp;
+	    		in_Xsum_v += X.col(u);
+	    	}
 		}
 		Eigen::MatrixXd out_non_nbr_v = x_sum_vector - out_Xsum_v - X.col(v);
 		Eigen::MatrixXd in_non_nbr_v = x_sum_vector - in_Xsum_v - X.col(v);		
