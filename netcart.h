@@ -1,7 +1,7 @@
 /*-------------------------------------------------------------
  * Author: Yuchen Lu
  * Compilation: make
- * Execution: ./bin/netcart
+ * Execution: the program is under bin/
  * 
  * Perform a RoDan algorithm on hospital data set with k equals 
  * to 4, and save the result to current directory.
@@ -22,7 +22,7 @@
 #include <cfloat>
 #include <set>
 
-const int MAX_ITERATE = 100;
+const int MAX_ITERATE = 1;
 const double ZERO = 1e-14;
 
 using namespace std;
