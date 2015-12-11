@@ -282,16 +282,20 @@ void Netcart::OptimizeR(int max_iterate_r)
 
 void Netcart::OptimizeX(int max_iterate_x)
 {
+
+    // this is original optimization which is the same as
+    // what is described in the paper.
 	x_sum_vector = X.rowwise().sum();	
 	double CostCurrent = CostFunction();
+    double CostOld = 0;
 	for (int v = 0; v < G.cols(); ++v)
 	{
-		for (int i = 0; i < max_iterate_x; ++i)
+		for (int i = 0; i < max_iterate_x/2; ++i)
 		{
 			x_sum_vector = X.rowwise().sum();	
 			Eigen::MatrixXd X_vgrad = Eigen::MatrixXd::Zero(X.rows(), 1);
 			Eigen::MatrixXd X_v = X.col(v);
-			double CostOld = CostCurrent;
+		    CostOld = CostCurrent;
 			X_vGradient(X_vgrad, v);
 			X_v += beta_x * X_vgrad;
 			Bounding(X_v);
@@ -301,6 +305,28 @@ void Netcart::OptimizeX(int max_iterate_x)
 				break;
 		}
 	}
+    
+    // the following is the exprimental speed up learning from Cesna
+    CostCurrent = CostFunction();
+    CostOld = 0;
+    for (int i = max_iterate_x/2; i < max_iterate_x; ++i)
+    {
+        x_sum_vector = X.rowwise().sum();
+        Eigen::MatrixXd X_grad = Eigen::MatrixXd::Zero(X.rows(), X.cols());
+        for (int v = 0; v < G.cols(); ++v)
+        {
+     	Eigen::MatrixXd X_vgrad = Eigen::MatrixXd::Zero(X.rows(), 1);
+            Eigen::MatrixXd X_v = X.col(v);
+            X_vGradient(X_vgrad, v);
+            X_grad.col(v) = X_vgrad;
+        }
+        X += beta_x * X_grad;
+        Bounding(X);
+        CostOld = CostCurrent;
+        CostCurrent = CostFunction();
+     if (Converge(CostOld, CostCurrent))
+     	break;
+    }
 }
 
 void Netcart::OptimizeW(int max_iterate_w)

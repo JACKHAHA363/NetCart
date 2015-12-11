@@ -22,7 +22,7 @@
 #include <cfloat>
 #include <set>
 
-const int MAX_ITERATE = 1;
+const int MAX_ITERATE = 100;
 const double ZERO = 1e-14;
 
 using namespace std;
