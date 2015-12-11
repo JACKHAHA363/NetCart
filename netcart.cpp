@@ -99,8 +99,9 @@ void Netcart::SetDigraph(bool _digraph){digraph = _digraph;}
 
 void Netcart::initialization()
 {
-	srand(13);
-//	srand(time(NULL));
+
+//	srand(0xdeadbeef); // just for debug
+	srand(time(NULL));
 	R.setRandom();
 	R = R + Eigen::MatrixXd::Ones(R.rows(),R.cols());//non-negative constraint
 	if(!digraph)
@@ -288,28 +289,11 @@ void Netcart::OptimizeX(int max_iterate_x)
 	x_sum_vector = X.rowwise().sum();	
 	double CostCurrent = CostFunction();
     double CostOld = 0;
-	for (int v = 0; v < G.cols(); ++v)
-	{
-		for (int i = 0; i < max_iterate_x/2; ++i)
-		{
-			x_sum_vector = X.rowwise().sum();	
-			Eigen::MatrixXd X_vgrad = Eigen::MatrixXd::Zero(X.rows(), 1);
-			Eigen::MatrixXd X_v = X.col(v);
-		    CostOld = CostCurrent;
-			X_vGradient(X_vgrad, v);
-			X_v += beta_x * X_vgrad;
-			Bounding(X_v);
-			X.col(v) = X_v;
-			CostCurrent = CostFunction();
-			if (Converge(CostOld, CostCurrent))
-				break;
-		}
-	}
     
     // the following is the exprimental speed up learning from Cesna
     CostCurrent = CostFunction();
     CostOld = 0;
-    for (int i = max_iterate_x/2; i < max_iterate_x; ++i)
+    for (int i = 0; i < max_iterate_x/2; ++i)
     {
         x_sum_vector = X.rowwise().sum();
         Eigen::MatrixXd X_grad = Eigen::MatrixXd::Zero(X.rows(), X.cols());
@@ -327,6 +311,26 @@ void Netcart::OptimizeX(int max_iterate_x)
      if (Converge(CostOld, CostCurrent))
      	break;
     }
+	
+    CostCurrent = CostFunction();
+    CostOld = 0;
+	for (int v = 0; v < G.cols(); ++v)
+	{
+		for (int i = max_iterate_x/2; i < max_iterate_x; ++i)
+		{
+			x_sum_vector = X.rowwise().sum();	
+			Eigen::MatrixXd X_vgrad = Eigen::MatrixXd::Zero(X.rows(), 1);
+			Eigen::MatrixXd X_v = X.col(v);
+		    CostOld = CostCurrent;
+			X_vGradient(X_vgrad, v);
+			X_v += beta_x * X_vgrad;
+			Bounding(X_v);
+			X.col(v) = X_v;
+			CostCurrent = CostFunction();
+			if (Converge(CostOld, CostCurrent))
+				break;
+		}
+	}
 }
 
 void Netcart::OptimizeW(int max_iterate_w)
