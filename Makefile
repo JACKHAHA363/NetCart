@@ -11,7 +11,6 @@ LDFLAGS2 = -std=c++11
 all: netcart_clg netcart_gcc
 
 ###################clang#############################
-
 netcart_clg: bin .objs main_clg.o netcart_clg.o util_clg.o
 	$(LD1) .objs/main_clg.o .objs/netcart_clg.o .objs/util_clg.o $(LDFLAGS1) -o bin/netcart_clg
 
@@ -25,7 +24,6 @@ util_clg.o: util.cpp util.h
 	$(CXX1) $(CXXFLAGS1) util.cpp -o .objs/util_clg.o
 
 ##################gcc###############################
-
 netcart_gcc: bin .objs main_gcc.o netcart_gcc.o util_gcc.o
 	$(LD2) .objs/main_gcc.o .objs/netcart_gcc.o .objs/util_gcc.o $(LDFLAGS2) -o bin/netcart_gcc
 

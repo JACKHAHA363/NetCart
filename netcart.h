@@ -94,12 +94,14 @@ public:
     
     /**
      * max_iterate_x/r/w: the number of iteration for X/R/W. We use a group coordinates
-     * gradient ascend here.
+     * gradient ascend here. The special parameter curr_iter is used for choice of different
+     * way to optimize in order to speed up.
+     *
      * path: the location to save the result.
      */
 	void Optimize(int max_iterate_x, int max_iterate_r, int max_iterate_w, string path = "");
 	void OptimizeR(int max_iterate_r);
-	void OptimizeX(int max_iterate_x);
+	void OptimizeX(int max_iterate_x, int curr_iter);
 	void OptimizeW(int max_iterate_w);
 
 private:

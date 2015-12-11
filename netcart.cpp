@@ -1,7 +1,6 @@
 #include "netcart.h"
 #include "util.h"
-
-// TODO: the converging speed is not good. 
+ 
 // TODO: add multi-threading or exploiting Eigen.
 // TODO: add zoom
 
@@ -252,7 +251,7 @@ void Netcart::Optimize(int max_iterate_x, int max_iterate_r, int max_iterate_w, 
 		{
 			R = R + R.transpose()/2;
 		}
-		OptimizeX(max_iterate_x);
+		OptimizeX(max_iterate_x, i);
 
 		double CostOld = CostCurrent;
 		CostCurrent = CostFunction();
@@ -281,7 +280,7 @@ void Netcart::OptimizeR(int max_iterate_r)
 	}
 }
 
-void Netcart::OptimizeX(int max_iterate_x)
+void Netcart::OptimizeX(int max_iterate_x, int curr_iter)
 {
 
     // this is original optimization which is the same as
@@ -290,47 +289,54 @@ void Netcart::OptimizeX(int max_iterate_x)
 	double CostCurrent = CostFunction();
     double CostOld = 0;
     
-    // the following is the exprimental speed up learning from Cesna
-    CostCurrent = CostFunction();
-    CostOld = 0;
-    for (int i = 0; i < max_iterate_x/2; ++i)
+    // this is point that you would switch to another strategy
+    int change_of_strategy = MAX_ITERATE;
+    if (curr_iter <= change_of_strategy)
     {
-        x_sum_vector = X.rowwise().sum();
-        Eigen::MatrixXd X_grad = Eigen::MatrixXd::Zero(X.rows(), X.cols());
-        for (int v = 0; v < G.cols(); ++v)
-        {
-     	Eigen::MatrixXd X_vgrad = Eigen::MatrixXd::Zero(X.rows(), 1);
-            Eigen::MatrixXd X_v = X.col(v);
-            X_vGradient(X_vgrad, v);
-            X_grad.col(v) = X_vgrad;
-        }
-        X += beta_x * X_grad;
-        Bounding(X);
-        CostOld = CostCurrent;
+        // the following is the exprimental speed up learning from Cesna
         CostCurrent = CostFunction();
-     if (Converge(CostOld, CostCurrent))
-     	break;
+        CostOld = 0;
+        for (int i = 0; i < max_iterate_x; ++i)
+        {
+            x_sum_vector = X.rowwise().sum();
+            Eigen::MatrixXd X_grad = Eigen::MatrixXd::Zero(X.rows(), X.cols());
+            for (int v = 0; v < G.cols(); ++v)
+            {
+         	Eigen::MatrixXd X_vgrad = Eigen::MatrixXd::Zero(X.rows(), 1);
+                Eigen::MatrixXd X_v = X.col(v);
+                X_vGradient(X_vgrad, v);
+                X_grad.col(v) = X_vgrad;
+            }
+            X += beta_x * X_grad;
+            Bounding(X);
+            CostOld = CostCurrent;
+            CostCurrent = CostFunction();
+         if (Converge(CostOld, CostCurrent))
+         	break;
+        }
     }
-	
-    CostCurrent = CostFunction();
-    CostOld = 0;
-	for (int v = 0; v < G.cols(); ++v)
-	{
-		for (int i = max_iterate_x/2; i < max_iterate_x; ++i)
-		{
-			x_sum_vector = X.rowwise().sum();	
-			Eigen::MatrixXd X_vgrad = Eigen::MatrixXd::Zero(X.rows(), 1);
-			Eigen::MatrixXd X_v = X.col(v);
-		    CostOld = CostCurrent;
-			X_vGradient(X_vgrad, v);
-			X_v += beta_x * X_vgrad;
-			Bounding(X_v);
-			X.col(v) = X_v;
-			CostCurrent = CostFunction();
-			if (Converge(CostOld, CostCurrent))
-				break;
-		}
-	}
+    else{
+        // the mathematically correct optimization
+        CostCurrent = CostFunction();
+        CostOld = 0;
+    	for (int v = 0; v < G.cols(); ++v)
+    	{
+    		for (int i = max_iterate_x/2; i < max_iterate_x; ++i)
+    		{
+    			x_sum_vector = X.rowwise().sum();	
+    			Eigen::MatrixXd X_vgrad = Eigen::MatrixXd::Zero(X.rows(), 1);
+    			Eigen::MatrixXd X_v = X.col(v);
+    		    CostOld = CostCurrent;
+    			X_vGradient(X_vgrad, v);
+    			X_v += beta_x * X_vgrad;
+    			Bounding(X_v);
+    			X.col(v) = X_v;
+    			CostCurrent = CostFunction();
+    			if (Converge(CostOld, CostCurrent))
+    				break;
+    		}
+    	}
+    }
 }
 
 void Netcart::OptimizeW(int max_iterate_w)
