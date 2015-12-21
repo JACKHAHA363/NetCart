@@ -13,6 +13,7 @@
 
 #include <iostream>
 #include "Eigen/Dense"
+#include <thread>
 #include <cmath>
 #include <string>
 #include <fstream>
