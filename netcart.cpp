@@ -1,8 +1,7 @@
 #include "netcart.h"
 #include "util.h"
  
-// TODO: add multi-threading or exploiting Eigen.
-// TODO: add zoom
+// TODO: add multi-threading by g++ directive
 
 Netcart::Netcart()
 {
