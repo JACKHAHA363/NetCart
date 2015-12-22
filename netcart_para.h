@@ -13,6 +13,7 @@
 
 #include <iostream>
 #include "Eigen/Dense"
+#include <thread>
 #include <cmath>
 #include <string>
 #include <fstream>
@@ -86,6 +87,8 @@ public:
 	double LogLikelihood();
 	double LogLikelihoodGraph();
 	double LogLikelihoodAttri();
+    double LogLikelihoodGraphEachCol(int v);//this is used for parallelization
+    double LogLikelihoodAttriEachCol();//This is used for parallelization
 
     /**
      * The cost function includes total likelihood and regulariation

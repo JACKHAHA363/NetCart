@@ -147,10 +147,7 @@ double Netcart::LogLikelihoodGraph()
 			}
 		}
 	}
-	nonresedge *= -1;
-//	cout << "resedge: " << resedge << " nonresedge: " << nonresedge << endl;
-//	cout << "edge: " << resedge + nonresedge << endl;
-	return resedge + nonresedge;
+	return resedge - nonresedge;
 }
 
 double Netcart::LogLikelihoodAttri()

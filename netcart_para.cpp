@@ -1,8 +1,10 @@
-#include "netcart.h"
+#include "netcart_para.h"
 #include "util.h"
 
 
 // TODO: multitreading the cost function first
+
+//const int NUMTHREAD = 4;
 
 Netcart::Netcart()
 {
@@ -121,9 +123,14 @@ double Netcart::LogLikelihood()
 
 double Netcart::LogLikelihoodGraph()
 {
+    x_sum_vector = X.rowwise().sum();  
+    double result[G.cols()];
+    // initialization result to be 0
+    for (int i = 0; i < G.cols(); i++)
+        result[i] = 0;
+    
 	double resedge = 0;
-	x_sum_vector = X.rowwise().sum();
-	double nonresedge = (x_sum_vector.transpose() * R * x_sum_vector)(0);
+    double nonresedge = (x_sum_vector.transpose() * R * x_sum_vector)(0);
 	for (int u = 0; u < G.rows(); ++u)
 	{
 		nonresedge -= X.col(u).transpose() * R * X.col(u);
@@ -132,25 +139,37 @@ double Netcart::LogLikelihoodGraph()
 	{
 		nonresedge /= 2;
 	}
+    
 	for (int v = 0; v < G.cols(); ++v)
+        result[v] = LogLikelihoodGraphEachCol(v);	
+    
+    double final_result = 0;
+    // collecting results
+    for (int v = 0; v < G.cols(); v++)
+    {
+        final_result += result[v];
+    }
+    final_result = final_result - nonresedge + resedge;
+    return final_result;
+}
+
+double Netcart::LogLikelihoodGraphEachCol(int v)
+{
+    double resedge = 0, nonresedge = 0;
+
+    for (int u = 0; u < G.rows(); ++u)
 	{
-		for (int u = 0; u < G.cols(); ++u)
+		if(u == v) continue;
+		if (G(u,v) == 1)
 		{
-			if(u == v) continue;
-			if (G(u,v) == 1)
-			{
-				double predict = X.col(u).transpose() * R * X.col(v);
-				if(predict == 0)
-					predict = ZERO;
-				nonresedge -= predict;
-				resedge += log(1 - exp(-predict));
-			}
+			double predict = X.col(u).transpose() * R * X.col(v);
+			if(predict == 0)
+				predict = ZERO;
+			nonresedge -= predict;
+			resedge += log(1 - exp(-predict));
 		}
 	}
-	nonresedge *= -1;
-//	cout << "resedge: " << resedge << " nonresedge: " << nonresedge << endl;
-//	cout << "edge: " << resedge + nonresedge << endl;
-	return resedge + nonresedge;
+    return resedge - nonresedge;
 }
 
 double Netcart::LogLikelihoodAttri()
