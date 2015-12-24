@@ -1,10 +1,7 @@
 #include "netcart_para.h"
 #include "util.h"
 
-
 // TODO: multitreading the cost function first
-
-//const int NUMTHREAD = 4;
 
 Netcart::Netcart()
 {
@@ -139,10 +136,25 @@ double Netcart::LogLikelihoodGraph()
 	{
 		nonresedge /= 2;
 	}
-    
-	for (int v = 0; v < G.cols(); ++v)
-        result[v] = LogLikelihoodGraphEachCol(v);	
-    
+	
+    int stride = NUMTHREAD + 1;
+    int v = 0;
+    vector<thread> workers;
+    for (; v < G.cols() - stride; v += stride){
+        for (int index = v; index < v + NUMTHREAD; index++)
+        {
+            workers.push_back(thread(&Netcart::LogLikelihoodGraphEachCol,
+                                     std::ref(*this), index, 
+                                     std::ref(result[index])));
+        }
+        LogLikelihoodGraphEachCol(v + NUMTHREAD, result[v + NUMTHREAD]);
+        for (int i = 0; i < NUMTHREAD; i++)
+            workers[i].join();
+        workers.clear();
+    }
+    for (; v < G.cols(); v++)
+        LogLikelihoodGraphEachCol(v, result[v]);
+
     double final_result = 0;
     // collecting results
     for (int v = 0; v < G.cols(); v++)
@@ -153,7 +165,7 @@ double Netcart::LogLikelihoodGraph()
     return final_result;
 }
 
-double Netcart::LogLikelihoodGraphEachCol(int v)
+void Netcart::LogLikelihoodGraphEachCol(int v, double &result)
 {
     double resedge = 0, nonresedge = 0;
 
@@ -169,7 +181,7 @@ double Netcart::LogLikelihoodGraphEachCol(int v)
 			resedge += log(1 - exp(-predict));
 		}
 	}
-    return resedge - nonresedge;
+    result = resedge - nonresedge;
 }
 
 double Netcart::LogLikelihoodAttri()

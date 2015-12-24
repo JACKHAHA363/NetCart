@@ -10,11 +10,14 @@ all: bin/netcart_clg bin/netcart_clg_para
 bin/netcart_clg: bin .objs .objs/main_clg.o .objs/netcart_clg.o .objs/util_clg.o
 	$(LD1) .objs/main_clg.o .objs/netcart_clg.o .objs/util_clg.o $(LDFLAGS1) -o bin/netcart_clg
 
-bin/netcart_clg_para: bin .objs .objs/main_clg.o .objs/netcart_clg_para.o .objs/util_clg.o
-	$(LD1) .objs/main_clg.o .objs/netcart_clg_para.o .objs/util_clg.o $(LDFLAGS1) -o bin/netcart_clg_para
+bin/netcart_clg_para: bin .objs .objs/main_clg_para.o .objs/netcart_clg_para.o .objs/util_clg.o
+	$(LD1) .objs/main_clg_para.o .objs/netcart_clg_para.o .objs/util_clg.o $(LDFLAGS1) -o bin/netcart_clg_para
 
 .objs/main_clg.o: main.cpp
 	$(CXX1) $(CXXFLAGS1) main.cpp -o .objs/main_clg.o
+
+.objs/main_clg_para.o: main_para.cpp
+	$(CXX1) $(CXXFLAGS1) main_para.cpp -o .objs/main_clg_para.o
 
 .objs/netcart_clg.o: netcart.cpp netcart.h
 	$(CXX1) $(CXXFLAGS1) netcart.cpp -o .objs/netcart_clg.o

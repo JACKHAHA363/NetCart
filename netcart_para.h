@@ -1,4 +1,4 @@
-/*-------------------------------------------------------------
+    /*-------------------------------------------------------------
  * Author: Yuchen Lu
  * Compilation: make
  * Execution: the program is under bin/
@@ -8,8 +8,8 @@
  *
  *-----------------------------------------------------------*/
 
-#ifndef NETCART_H
-#define NETCART_H
+#ifndef NETCART_PARA_H
+#define NETCART_PARA_H
 
 #include <iostream>
 #include "Eigen/Dense"
@@ -23,6 +23,7 @@
 #include <cfloat>
 #include <set>
 
+const int NUMTHREAD = 4;
 const int MAX_ITERATE = 100;
 const double ZERO = 1e-14;
 
@@ -87,7 +88,7 @@ public:
 	double LogLikelihood();
 	double LogLikelihoodGraph();
 	double LogLikelihoodAttri();
-    double LogLikelihoodGraphEachCol(int v);//this is used for parallelization
+    void LogLikelihoodGraphEachCol(int v, double &result);//this is used for parallelization
     double LogLikelihoodAttriEachCol();//This is used for parallelization
 
     /**
