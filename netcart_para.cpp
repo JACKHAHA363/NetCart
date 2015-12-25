@@ -139,21 +139,18 @@ double Netcart::LogLikelihoodGraph()
 	
     int stride = NUMTHREAD + 1;
     int v = 0;
-    vector<thread> workers;
+    thread workers[NUMTHREAD];
     for (; v < G.cols() - stride; v += stride){
-        for (int index = v; index < v + NUMTHREAD; index++)
+        for (int i = 0; i < NUMTHREAD; i++)
         {
-            workers.push_back(thread(&Netcart::LogLikelihoodGraphEachCol,
-                                     std::ref(*this), index, 
-                                     std::ref(result[index])));
+           workers[i] = thread(&Netcart::LogLikelihoodGraphEachCol, this, v + i, std::ref(result[v + i]));
         }
         LogLikelihoodGraphEachCol(v + NUMTHREAD, result[v + NUMTHREAD]);
         for (int i = 0; i < NUMTHREAD; i++)
             workers[i].join();
-        workers.clear();
     }
     for (; v < G.cols(); v++)
-        LogLikelihoodGraphEachCol(v, result[v]);
+        LogLikelihoodGraphEachCol(v, result[v]); 
 
     double final_result = 0;
     // collecting results

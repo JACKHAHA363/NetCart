@@ -1,4 +1,4 @@
-    /*-------------------------------------------------------------
+/*-------------------------------------------------------------
  * Author: Yuchen Lu
  * Compilation: make
  * Execution: the program is under bin/
@@ -12,7 +12,6 @@
 #define NETCART_PARA_H
 
 #include <iostream>
-#include "Eigen/Dense"
 #include <thread>
 #include <cmath>
 #include <string>
@@ -23,7 +22,8 @@
 #include <cfloat>
 #include <set>
 
-const int NUMTHREAD = 4;
+#include "Eigen/Dense"
+const int NUMTHREAD = 7;
 const int MAX_ITERATE = 100;
 const double ZERO = 1e-14;
 
