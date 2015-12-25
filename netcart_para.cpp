@@ -1,7 +1,7 @@
 #include "netcart_para.h"
 #include "util.h"
 
-// TODO: multitreading the cost function first
+// TODO: Try some Large Graph
 
 Netcart::Netcart()
 {

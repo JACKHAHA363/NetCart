@@ -23,7 +23,7 @@
 #include <set>
 
 #include "Eigen/Dense"
-const int NUMTHREAD = 7;
+const int NUMTHREAD = 4;
 const int MAX_ITERATE = 100;
 const double ZERO = 1e-14;
 
