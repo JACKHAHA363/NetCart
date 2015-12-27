@@ -24,7 +24,7 @@ int main()
 	mynetcart.LogLikelihood();
     */
 	// test costfunction
-    for (int i = 0; i < 2000; i++)
+    for (int i = 0; i < 2500; i++)
         mynetcart.CostFunction();
     cout << mynetcart.CostFunction() << endl;
 	
