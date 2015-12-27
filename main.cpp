@@ -6,7 +6,7 @@
 int main()
 {
 	Eigen::MatrixXd m;
-	Netcart mynetcart("data/hospital.edges","data/hospital.nodefeat");
+	Netcart mynetcart("data/enron.edges","data/enron.nodefeat");
 	mynetcart.initialization();
 	mynetcart.SetRegularization();
 
@@ -22,13 +22,15 @@ int main()
 
 	// test likelihood
 	mynetcart.LogLikelihood();
-
+    */
 	// test costfunction
-	cout << mynetcart.CostFunction() << endl;
-	*/
+    for (int i = 0; i < 2500; i++)
+        mynetcart.CostFunction();
+    cout << mynetcart.CostFunction() << endl;
+	
 
 	// These parameters are set to be consistent with what that is in rodan.py
-	mynetcart.SetLearningRate(0.01,0.01,0.1);
-	mynetcart.Optimize(200,200,200);
+	//mynetcart.SetLearningRate(0.01,0.01,0.1);
+	//mynetcart.Optimize(200,200,200);
 	return 0;	
 }

@@ -2,9 +2,22 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "netcart.h"
+#include <iostream>
+#include "Eigen/Dense"
+#include <cmath>
+#include <string>
+#include <fstream>
+#include <vector>
+#include <unordered_map>
+#include <assert.h>
+#include <cfloat>
+#include <set>
 
 using std::string;
+using std::cout;
+using std::endl;
+using std::fstream;
+using std::abs;
 
 void normalization(Eigen::MatrixXd &input);
 

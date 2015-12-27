@@ -1,8 +1,8 @@
 #include "netcart.h"
 #include "util.h"
- 
-// TODO: add multi-threading or exploiting Eigen.
-// TODO: add zoom
+
+
+// TODO: multitreading the cost function first
 
 Netcart::Netcart()
 {
@@ -99,8 +99,8 @@ void Netcart::SetDigraph(bool _digraph){digraph = _digraph;}
 void Netcart::initialization()
 {
 
-//	srand(0xdeadbeef); // just for debug
-	srand(time(NULL));
+	srand(0xdeadbeef); // just for debug
+//	srand(time(NULL));
 	R.setRandom();
 	R = R + Eigen::MatrixXd::Ones(R.rows(),R.cols());//non-negative constraint
 	if(!digraph)
@@ -147,10 +147,7 @@ double Netcart::LogLikelihoodGraph()
 			}
 		}
 	}
-	nonresedge *= -1;
-//	cout << "resedge: " << resedge << " nonresedge: " << nonresedge << endl;
-//	cout << "edge: " << resedge + nonresedge << endl;
-	return resedge + nonresedge;
+	return resedge - nonresedge;
 }
 
 double Netcart::LogLikelihoodAttri()
