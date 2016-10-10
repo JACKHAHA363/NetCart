@@ -1,35 +1,25 @@
-CXX1 = clang++
-CXXFLAGS1 = -std=c++1y -stdlib=libc++ -c -g -Wall -Wextra
-LD1 = clang++
-LDFLAGS1 = -std=c++1y -stdlib=libc++ -pthread
+CXX1 = g++
+CXXFLAGS1 = -std=c++1y -c -g -Wall -Wextra
+LD1 = g++
+LDFLAGS1 = -std=c++1y -pthread
 
 ####################################################
-all: bin/netcart_clg bin/netcart_clg_para
+all: bin/netcart
 
-###################clang#############################
-bin/netcart_clg: bin .objs .objs/main_clg.o .objs/netcart_clg.o .objs/util_clg.o
-	$(LD1) .objs/main_clg.o .objs/netcart_clg.o .objs/util_clg.o $(LDFLAGS1) -o bin/netcart_clg
+####################################################
+bin/netcart: bin .objs .objs/main.o .objs/netcart.o .objs/util.o
+	$(LD1) .objs/main.o .objs/netcart.o .objs/util.o $(LDFLAGS1) -o bin/netcart
 
-.objs/main_clg.o: main.cpp
-	$(CXX1) $(CXXFLAGS1) main.cpp -o .objs/main_clg.o
+.objs/main.o: main.cpp
+	$(CXX1) $(CXXFLAGS1) main.cpp -o .objs/main.o
 
-.objs/netcart_clg.o: netcart.cpp netcart.h
-	$(CXX1) $(CXXFLAGS1) netcart.cpp -o .objs/netcart_clg.o
+.objs/netcart.o: netcart.cpp netcart.h
+	$(CXX1) $(CXXFLAGS1) netcart.cpp -o .objs/netcart.o
 
-#################clang_para############################
-bin/netcart_clg_para: bin .objs .objs/main_clg_para.o .objs/netcart_clg_para.o .objs/util_clg.o
-	$(LD1) .objs/main_clg_para.o .objs/netcart_clg_para.o .objs/util_clg.o $(LDFLAGS1) -o bin/netcart_clg_para
+.objs/util.o: util.cpp util.h
+	$(CXX1) $(CXXFLAGS1) util.cpp -o .objs/util.o
 
-.objs/main_clg_para.o: main_para.cpp
-	$(CXX1) $(CXXFLAGS1) main_para.cpp -o .objs/main_clg_para.o
-
-.objs/netcart_clg_para.o: netcart_para.cpp netcart_para.h
-	$(CXX1) $(CXXFLAGS1) netcart_para.cpp -o .objs/netcart_clg_para.o
-
-##################shared_dependency###################
-.objs/util_clg.o: util.cpp util.h
-	$(CXX1) $(CXXFLAGS1) util.cpp -o .objs/util_clg.o
-############################general##################
+#####################################################
 bin:
 	@mkdir -p bin
 
