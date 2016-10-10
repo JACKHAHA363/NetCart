@@ -1,4 +1,4 @@
-#Project Title
+#NetCart
 
 This software is a c++ implementation of the algorithm proposed by Jia Wang at [here](https://arxiv.org/pdf/1512.06021v1.pdf). To compile this project, the Eigen has to be put at the root directory, or you can create a link flag during the compilation. The software has been developed and tested in the following platform: Ubuntu 14.04 with gcc 4.8.4. 
 
