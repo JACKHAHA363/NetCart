@@ -33,4 +33,3 @@ E.g. For the following graph, 1 is only connected to 2. And 3,4 are two isolated
 3 3
 4 4
 ```
-The same rule applies to .nodefeat file, if some attributes is not used by any node (which is highly impossible)
