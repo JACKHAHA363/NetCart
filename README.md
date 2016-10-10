@@ -18,7 +18,7 @@ Then you could run the demo using a hospital dataset by
 
 The resulting model parameters would be stored in four files: `Const.txt`, `R.txt`, `W.txt`, `X.txt`. You could find their meaning in the paper.
 
-### Input Format
+## Input Format
 
 The input files are: `mygraph.edges`, `mygraph.nodefeat`, which describes your graph and node attributes.
 
